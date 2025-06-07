@@ -1,7 +1,47 @@
+@font-face {
+  font-family: "DOSGothic";
+  src: url("https://cdn.jsdelivr.net/gh/hurss/fonts@master/ttf/DOSGothic.ttf")
+    format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 html {
   overflow: hidden;
 }
 
 canvas {
+  font-family: "cc-pixel-arcade-cartridge", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+
   display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -999;
+}
+
+/* 정보 입력 창입니다. to 예원. 이 영역을 디자인해 주세요 -용파 */
+#form {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vh;
+  height: 80vh;
+  background-color: white;
+}
+
+/* 스코어보드 창입니다. to 예원. 이 영역을 디자인해 주세요 -용파 */
+#score-board {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vh;
+  height: 80vh;
+  background-color: white;
 }

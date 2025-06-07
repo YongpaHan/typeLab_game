@@ -1,52 +1,141 @@
 import p5 from "p5";
 
 export const sketch = new p5((p) => {
-  let body;
   let gameStart = false;
+  let isDataEntered = false;
   let gameOver = false;
   let score = 0;
-  let ground;
 
-  p.setup = () => {
+  let pg;
+  let body, ground, bg;
+
+  let flower, flower_dead, title_img, bg_ground, bg_sky;
+  let titleY = 0;
+
+  // 입력 창 노드 취득
+  const form = document.getElementById("form");
+  // 입력 시 작동
+  // 입력 창 입력 시 이벤트리스너입니다. to 성훈. 이 영역에서 데이터를 DB로 전달할 수 있습니다. -용파
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    form.style.display = "none";
+    isDataEntered = true;
+  });
+
+  // 스코어보드 노드 취득
+  const score_board = document.getElementById("score-board");
+
+  p.setup = async () => {
     p.createCanvas(window.innerWidth, window.innerHeight);
+    pg = p.createGraphics(p.width, p.height, p.WEBGL);
     p.rectMode(p.CENTER);
     p.textAlign(p.CENTER, p.CENTER);
+    p.imageMode(p.CENTER);
+    pg.imageMode(p.CENTER);
+    p.noSmooth();
+    pg.noSmooth();
+    pg.noStroke();
+    pg.pixelDensity(0.4);
+    pg.resetMatrix();
+    pg.translate(-pg.width / 2, -pg.height / 2);
 
-    ground = new Ground(p.width / 2, p.height / 2);
-    body = new Body(p.width / 2, p.height / 2, 0);
+    // 이미지파일을 불러오는 부분입니다.
+    // p5.js 2.0은 비동기함수로 이미지파일을 불러올 수 있더라구요.
+    flower = await p.loadImage("./images/Face_basic_x4.png");
+    flower_dead = await p.loadImage("./images/Face_dead_x4.png");
+    title_img = await p.loadImage("./images/Title_.png");
+    bg_ground = await p.loadImage("./images/BG_Ground.png");
+    bg_sky = await p.loadImage("./images/BG_Sky.png");
+
+    // 객체 생성 및 초기화 부분
+    const groundY = p.height * 0.77;
+    ground = new Ground(p.width / 2, groundY);
+    body = new Body(p.width / 2, ground.pos.y, 0);
     body.update();
+    bg = new BG(p.width / 2, p.height / 2, bg_ground, bg_sky);
   };
 
   p.draw = () => {
+    // 각각 스크린의 초기화
+    pg.clear();
     p.background(255);
+    // 배경을 그리는 부분
+    bg.updateScale();
+    bg.display();
 
-    if (gameStart) {
-      if (p.frameCount % 12 === 0) {
-        score++;
-      }
-      p.text(score / 10 + "m", p.width * 0.05, p.height * 0.05);
-      body.update();
-    } else {
-      p.text(
-        `Use the *LEFT and RIGHT ARROWS* to keep balanced\nPress *SPACE BAR* to start`,
-        p.width / 2,
-        p.height / 2
-      );
-    }
+    // 시험삼아 넣은 태양
+    // 제거해도 무관
+    pg.fill(255, 225, 100);
+    pg.ellipse(300, 120, 160);
+    pg.fill(255, 255, 225);
+    pg.ellipse(300, 120, 140);
 
-    body.display();
+    // 땅 그리는 부분
+    // 제거해도 무관
     ground.display();
+    // 몸통과 다리 등 캐릭터를 그리는 부분
+    body.displayLegs();
+    // offscreen 캔버스를 그리는 부분
+    p.push();
+    p.imageMode(p.CORNER);
+    p.image(pg, 0, 0);
+    p.pop();
+    // 몸통 그리는 부분입니다
+    body.display();
 
+    if (!gameStart) {
+      //게임 시작 전 화면입니다 (초기 화면)
+      titleY = p.sin(p.frameCount * 0.015) * (p.height * 0.01);
+      p.push();
+      p.translate(p.width / 2, p.height * 0.25 + titleY);
+      p.rotate(p.sin(p.frameCount * 0.025) * (p.QUARTER_PI * 0.0375) + 0.125);
+      p.image(title_img, 0, 0, title_img.width * 0.2, title_img.height * 0.2);
+      p.pop();
+      // press to start 그리는 부분
+      p.push();
+      p.textFont("DOSGothic");
+      p.textSize(28);
+      p.strokeWeight(4);
+      p.stroke(0);
+      p.fill(255 - (p.sin(p.frameCount * 0.05) * 0.5 + 0.5) * 100);
+      p.text("Press SPACE BAR to start", p.width * 0.5, p.height * 0.875);
+      p.pop();
+    } else {
+      // 게임 진행 중 화면입니다.
+      if (!isDataEntered) {
+        form.style.display = "block";
+      } else {
+        if (p.frameCount % 12 === 0) {
+          score++;
+        }
+        p.text(score / 10 + "m", p.width * 0.5, p.height * 0.1);
+        body.update();
+        bg.update();
+      }
+    }
     if (gameOver) {
+      // 게임 오버되었을 경우입니다.
       gameStart = false;
-      p.text("GAME OVER", p.width / 2, p.height / 2);
+      // p.text("GAME OVER", p.width / 2, p.height / 2);
       p.noLoop();
+
+      // 스코어보드 보이게끔
+      score_board.style.display = "block";
     }
   };
 
   p.keyPressed = () => {
-    if (p.keyCode === 32) {
+    if (p.keyCode !== 32) return;
+
+    if (gameOver) {
+      resetGame();
+      // 바로 아래줄을 주석 해제하면 초기화면 없이 바로 입력 화면으로 재시작됩니다.
+      // gameStart = true;
+      return;
+    }
+    if (!gameStart) {
       gameStart = true;
+      return;
     }
   };
 
@@ -54,13 +143,69 @@ export const sketch = new p5((p) => {
     p.resizeCanvas(window.innerWidth, window.innerHeight);
   };
 
+  class BG {
+    constructor(x, y, img, img2) {
+      this.pos = p.createVector(x, y);
+      this.img = img;
+      this.img2 = img2;
+      this.bg1 = {
+        src: this.img,
+        loc: { x: 0, y: 0 },
+        pos: { x: 0, y: 0 },
+      };
+      this.bg2 = {
+        src: this.img,
+        loc: { x: 0, y: 0 },
+        pos: { x: 0, y: 0 },
+      };
+      this.speed = 1.2;
+
+      this.updateScale();
+    }
+
+    updateScale() {
+      const scale = p.height / this.img.height;
+      this.w = this.img.width * scale;
+      this.h = this.img.height * scale;
+    }
+
+    update() {
+      this.speed += body.difficulty * 200;
+      this.bg1.pos.x -= this.speed;
+      this.bg2.pos.x -= this.speed;
+
+      if (this.bg1.pos.x < this.bg1.loc.x - this.w) {
+        this.bg1.pos.x = 0;
+      }
+      if (this.bg2.pos.x < this.bg2.loc.x - this.w) {
+        this.bg2.pos.x = 0;
+      }
+    }
+
+    display() {
+      p.image(this.img2, this.pos.x, this.pos.y, this.w, this.h);
+      p.push();
+      p.translate(this.pos.x, this.pos.y);
+      p.image(this.bg1.src, this.bg1.pos.x, this.bg1.pos.y, this.w, this.h);
+      p.pop();
+      p.push();
+      p.translate(this.pos.x + this.w, this.pos.y);
+      p.image(this.bg2.src, this.bg2.pos.x - 1, this.bg2.pos.y, this.w, this.h);
+      p.pop();
+    }
+  }
+
   class Ground {
     constructor(x, y) {
       this.pos = p.createVector(x, y);
     }
 
     display() {
+      p.push();
+      p.stroke(0, 180, 0);
+      p.strokeWeight(4);
       p.line(0, this.pos.y, p.width, this.pos.y);
+      p.pop();
     }
   }
 
@@ -73,18 +218,18 @@ export const sketch = new p5((p) => {
       this.angleAcc = 0;
       this.accVal = 0.001;
       this.difficulty = 0.000005;
-      this.length = 120;
+      this.length = 130;
 
       this.targetPoslevel = 0;
       this.targetPosL = p.createVector();
       this.targetPosR = p.createVector();
 
       this.calculateTargetPos(1.5);
-      this.leftLeg = new Leg(this.targetPosL.x, this.targetPosL.y, 70, "LEFT");
+      this.leftLeg = new Leg(this.targetPosL.x, this.targetPosL.y, 80, "LEFT");
       this.rightLeg = new Leg(
         this.targetPosR.x,
         this.targetPosR.y,
-        70,
+        80,
         "RIGHT"
       );
 
@@ -149,28 +294,25 @@ export const sketch = new p5((p) => {
       );
     }
 
+    displayLegs() {
+      this.leftLeg.display();
+      this.rightLeg.display();
+    }
+
     display() {
       p.push();
       p.noStroke();
       p.translate(this.pos.x, this.pos.y);
       p.rotate(this.angle);
-      p.rect(0, 0, 50, 100);
+      // p.rect(0, 0, 50, 100);
+      if (!gameOver) {
+        p.image(flower, 0, 0, flower.width * 0.75, flower.height * 0.75);
+      } else {
+        p.image(flower_dead, 0, 0, flower.width * 0.75, flower.height * 0.75);
+      }
       p.pop();
-
-      this.leftLeg.display();
-      this.rightLeg.display();
     }
   }
-
-  p.keyPressed = () => {
-    if (p.keyCode === 32) {
-      gameStart = true;
-    }
-  };
-
-  p.windowResized = () => {
-    p.resizeCanvas(window.innerWidth, window.innerHeight);
-  };
 
   class Leg {
     constructor(x, y, len, side = "LEFT") {
@@ -226,15 +368,14 @@ export const sketch = new p5((p) => {
       }
       this.foot.display();
 
-      p.push();
-      p.strokeWeight(10);
-      p.line(
+      thickLine(
+        pg,
         this.segs[0].bPos.x,
         this.segs[0].bPos.y,
         this.foot.newPos.x,
-        this.foot.newPos.y
+        this.foot.newPos.y,
+        12
       );
-      p.pop();
     }
   }
 
@@ -259,15 +400,14 @@ export const sketch = new p5((p) => {
     display() {
       this.updateNewPos();
       // p.ellipse(this.newPos.x, this.newPos.y, 10);
-      p.push();
-      p.strokeWeight(10);
-      p.line(
+      thickLine(
+        pg,
         this.newPos.x,
         this.newPos.y,
-        this.newPos.x + this.step.x / 4,
-        this.newPos.y
+        this.newPos.x + this.step.x / 2,
+        this.newPos.y,
+        12
       );
-      p.pop();
     }
 
     update() {
@@ -327,12 +467,14 @@ export const sketch = new p5((p) => {
     }
 
     display() {
-      p.push();
-      this.id < 3 ? p.strokeWeight(10) : p.strokeWeight(4);
-      p.stroke(0);
-      p.line(this.aPos.x, this.aPos.y, this.bPos.x, this.bPos.y);
-      p.pop();
-      p.fill(0);
+      thickLine(
+        pg,
+        this.aPos.x,
+        this.aPos.y,
+        this.bPos.x,
+        this.bPos.y,
+        this.id < 3 ? 12 : 8
+      );
     }
 
     setA(x, y) {
@@ -343,4 +485,43 @@ export const sketch = new p5((p) => {
       this.bPos.set(x, y);
     }
   }
+
+  function resetGame() {
+    gameStart = false;
+    isDataEntered = false;
+    gameOver = false;
+    score = 0;
+
+    form.reset();
+    form.style.display = "none";
+    score_board.style.display = "none";
+
+    const groundY = p.height * 0.77;
+    ground = new Ground(p.width / 2, groundY);
+    body = new Body(p.width / 2, ground.pos.y, 0);
+    bg = new BG(p.width / 2, p.height / 2, bg_ground, bg_sky);
+
+    p.loop();
+  }
 });
+
+function thickLine(g, x1, y1, x2, y2, w, col = 0) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx);
+
+  g.push();
+  g.translate(x1, y1);
+  g.rotate(ang);
+
+  g.noStroke();
+  g.fill(col);
+
+  g.rectMode(g.CORNER);
+  g.rect(0, -w / 2, len, w);
+
+  g.circle(0, 0, w);
+  g.circle(len, 0, w);
+  g.pop();
+}
