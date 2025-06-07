@@ -1,0 +1,186 @@
+@font-face {
+    font-family: 'DOSGothic';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSGothic.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+button,
+input {
+  all: unset;
+}
+
+body{
+    font-family: 'DOSGothic';
+}
+
+#h1{
+    font-size: 2rem;
+    top: 18.3%;
+}
+
+#h2{
+    top:50%;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+#h3{
+    top:50%;
+    width: 100%;
+    text-align: center;
+    font-size: 2rem;
+}
+
+button{
+    position: absolute;
+    top:50%;
+    left: 50%;
+    width: 100%;
+    text-align: center;
+    font-size: 2rem;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+}
+
+input{
+    position: absolute;
+    top:50%;
+    left: 50%;
+    width: 100%;
+    text-align: center;
+    font-size: 2rem;
+    transform: translate(-50%, -50%);
+    background: none;
+}
+
+input{
+    background-color: rgb(0,0,0,0);
+}
+
+.strip-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.strip {
+  width: 100%;
+  height: calc(100%/54);
+}
+
+.strip-blue {
+  background-color: #38C0FC;
+}
+
+.strip-gray {
+  background-color: #E4E4E4;
+}
+
+.strip-white {
+  background-color: #FAFAFA;
+}
+
+.instruction-container{
+    position: absolute;
+    width: 100%;
+    height:100%;
+    top:calc(2*100%/54);
+    display: flex;
+    flex-direction: row;
+}
+
+.instruction-container-left{
+    width: 100%;
+    height: calc(100% * (1 - 2 / 54));
+    display: flex;
+    flex-direction: column;
+}
+
+.instruction-container-right{
+    width: 100%;
+    height: calc(100% * (1 - 2 / 54));
+    display: flex;
+    flex-direction: column;
+}
+
+.instruction-child{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.instruction-child2{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#border{
+    border: 0.5px #A7A7A7 solid;
+    height: 100%;
+}
+
+.instruction-child-image{
+    position: absolute;
+    transform: translate(-50%,-50%);
+    width: 30%;
+    top: 24.5%;
+    left:25%;
+}
+
+.instruction-child-image2{
+    position: absolute;
+    transform: translate(-50%,-50%);
+    width: 30%;
+    top: 73%;
+    left:25%;
+}
+
+.instruction-child-image3{
+    position: absolute;
+    transform: translate(-50%,-50%);
+    width: 30%;
+    top: 24%;
+    left:75%;
+}
+
+.instruction-child-image4{
+    position: absolute;
+    transform: translate(-50%,-50%);
+    width: 30%;
+    top: 48%;
+    left:75%;
+}
+
+.instruction-child-image5{
+    position: absolute;
+    transform: translate(-50%,-50%);
+    width: 30%;
+    top: 72%;
+    left:75%;
+}
+
+
+/* #image2{
+    width:30%;
+    top: 73%;
+    left:25%;
+} */
+
+.instruction-child p{
+    position: absolute;
+    transform: translate(-50%,-50%);
+    left: 50%;
+}
+
+.button-images-container{
+    display: none;
+    gap: 40px;
+}
+
+.button-images-container.game-started {
+    display: flex;
+}

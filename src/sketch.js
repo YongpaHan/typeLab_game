@@ -11,6 +11,7 @@ export const sketch = new p5((p) => {
 
   let flower, flower_dead, title_img, bg_ground, bg_sky;
   let titleY = 0;
+  let titleScale;
 
   // 입력 창 노드 취득
   const form = document.getElementById("form");
@@ -57,6 +58,7 @@ export const sketch = new p5((p) => {
     body = new Body(p.width / 2, ground.pos.y, 0);
     body.update();
     bg = new BG(p.width / 2, p.height / 2, bg_ground, bg_sky);
+    
   };
 
   p.draw = () => {
@@ -87,13 +89,26 @@ export const sketch = new p5((p) => {
     // 몸통 그리는 부분입니다
     body.display();
 
+
+    //title 반응형
+    if (p.width <= 425) {
+        titleScale = 0.14;
+    } else if (p.width <= 768) {
+        titleScale = 0.17;
+    } else {
+        titleScale = 0.2;
+    }
+
+    // console.log(titleScale)
+
+
     if (!gameStart) {
       //게임 시작 전 화면입니다 (초기 화면)
       titleY = p.sin(p.frameCount * 0.015) * (p.height * 0.01);
       p.push();
       p.translate(p.width / 2, p.height * 0.25 + titleY);
       p.rotate(p.sin(p.frameCount * 0.025) * (p.QUARTER_PI * 0.0375) + 0.125);
-      p.image(title_img, 0, 0, title_img.width * 0.2, title_img.height * 0.2);
+      p.image(title_img, 0, 0, title_img.width * titleScale, title_img.height * titleScale);
       p.pop();
       // press to start 그리는 부분
       p.push();
@@ -107,6 +122,7 @@ export const sketch = new p5((p) => {
     } else {
       // 게임 진행 중 화면입니다.
       if (!isDataEntered) {
+        console.log("frag") 
         // 아직 버튼이 눌리지 않았을 때
         form.style.display = "block";
       } else {
@@ -152,8 +168,47 @@ export const sketch = new p5((p) => {
     }
   };
 
+  p.touchStarted = () => {
+    if (form.style.display === "block") {
+        return true;
+    }
+
+    if(gameOver){
+        resetGame();
+        return false;
+    }
+    if(!gameStart){
+        gameStart = true;
+        // 게임 시작 시 모바일 버튼 표시
+        if (window.innerWidth <= 480) {
+            const buttonContainer = document.querySelector('.button-images-container');
+            if (buttonContainer) {
+                buttonContainer.classList.add('game-started');
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+  //to 용파님. p5 반응형 코드입니다.
   p.windowResized = () => {
-    p.resizeCanvas(window.innerWidth, window.innerHeight);
+      p.resizeCanvas(p.windowWidth, p.windowHeight);
+      
+      pg = p.createGraphics(p.width, p.height, p.WEBGL);
+      pg.imageMode(p.CENTER);
+      pg.noSmooth();
+      pg.noStroke();
+      pg.pixelDensity(0.4);
+      pg.resetMatrix();
+      pg.translate(-pg.width / 2, -pg.height / 2);
+      
+      const groundY = p.height * 0.77;
+      ground = new Ground(p.width / 2, groundY);
+      body = new Body(p.width / 2, ground.pos.y, 0);
+      bg = new BG(p.width / 2, p.height / 2, bg_ground, bg_sky);
+      
+      body.update();
   };
 
   class BG {
@@ -510,10 +565,21 @@ export const sketch = new p5((p) => {
     score_board.style.display = "none";
     scoreSection.style.display = "none";
 
+    const buttonContainer = document.querySelector('.button-images-container');
+    if (buttonContainer) {
+        buttonContainer.classList.remove('game-started');
+    }
+
+    if (window.resetScrollPosition) {
+      window.resetScrollPosition();
+    }
+
     const groundY = p.height * 0.77;
     ground = new Ground(p.width / 2, groundY);
     body = new Body(p.width / 2, ground.pos.y, 0);
     bg = new BG(p.width / 2, p.height / 2, bg_ground, bg_sky);
+
+    
 
     p.loop();
   }
