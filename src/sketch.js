@@ -22,6 +22,10 @@ export const sketch = new p5((p) => {
     isDataEntered = true;
   });
 
+  // 게임 중 점수 확인 영역 노드 취득
+  const scoreSection = document.getElementById("score");
+  const scoreNum = document.getElementById("score-num");
+
   // 스코어보드 노드 취득
   const score_board = document.getElementById("score-board");
 
@@ -103,12 +107,18 @@ export const sketch = new p5((p) => {
     } else {
       // 게임 진행 중 화면입니다.
       if (!isDataEntered) {
+        // 아직 버튼이 눌리지 않았을 때
         form.style.display = "block";
       } else {
+        // 정보가 입력되고 게임이 진행될 때
+        scoreSection.style.display = "block";
+        // 일정 시간마다 점수가 올라갑니다.
+        // 점수는 score 변수로 관리됩니다.
         if (p.frameCount % 12 === 0) {
           score++;
         }
-        p.text(score / 10 + "m", p.width * 0.5, p.height * 0.1);
+        scoreNum.textContent = `${score / 10}m`;
+        // p.text(score / 10 + "m", p.width * 0.5, p.height * 0.1);
         body.update();
         bg.update();
       }
@@ -118,6 +128,9 @@ export const sketch = new p5((p) => {
       gameStart = false;
       // p.text("GAME OVER", p.width / 2, p.height / 2);
       p.noLoop();
+
+      // 점수 확인 영역 안 보이게
+      scoreSection.style.display = "none";
 
       // 스코어보드 보이게끔
       score_board.style.display = "block";
@@ -495,6 +508,7 @@ export const sketch = new p5((p) => {
     form.reset();
     form.style.display = "none";
     score_board.style.display = "none";
+    scoreSection.style.display = "none";
 
     const groundY = p.height * 0.77;
     ground = new Ground(p.width / 2, groundY);

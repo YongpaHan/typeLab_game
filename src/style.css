@@ -34,6 +34,18 @@ canvas {
   background-color: white;
 }
 
+/* 게임 진행 중 스코어 확인 영역입니다. to 예원. 이 영역을 디자인해 주세요 -용파 */
+#score {
+  display: none;
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 80px;
+  background-color: white;
+}
+
 /* 스코어보드 창입니다. to 예원. 이 영역을 디자인해 주세요 -용파 */
 #score-board {
   display: none;
