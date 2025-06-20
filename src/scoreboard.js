@@ -1,24 +1,9 @@
-const scores = [
-    { nickname: "아아아", score: 20 },
-    { nickname: "오오오", score: 19 },
-    { nickname: "이이이", score: 18 },
-    { nickname: "기기기", score: 17 },
-    { nickname: "교교교", score: 16 },
-    { nickname: "구구구", score: 15 },
-    { nickname: "개개개", score: 14 },
-    { nickname: "게게게", score: 13 },
-    { nickname: "네네네", score: 12 },
-    { nickname: "우우우", score: 11 },
-    { nickname: "개개개", score: 14 },
-    { nickname: "게게게", score: 13 },
-    { nickname: "네네네", score: 12 },
-];
-
+import { loadScore } from './supabase.js';
 
 //to 성훈님 myNickname에 현재 사용자의 닉네임을 넣으시면 됩니다 -예원
-const myNickname = "우우우";
-
-scores.sort((a, b) => b.score - a.score);
+//닉네임 불러오기는 createScoreboard 함수 안으로 옮겼습니다. -성훈
+console.log("현재 사용자의 닉네임:", window.me);
+let scores = [];
 
 const getRankLabel = (index) => {
     const suffix = ["ST", "ND", "RD"];
@@ -54,6 +39,7 @@ function recreateScoreboardContainer() {
 
 function createScoreboard() {
     const scoreboardBody = document.getElementById("scoreboard-body");
+    const myNickname = window.me;
     
     if (!scoreboardBody) {
         console.log("scoreboardBody를 찾을 수 없음");
@@ -68,7 +54,8 @@ function createScoreboard() {
         const row = document.createElement("div");
         row.className = "scoreboard-row";
         
-        if (entry.nickname === myNickname) {
+        // 하이라이트 처리 기준을 데이터베이스에서의 ID로 변경했습니다. -성훈
+        if (entry.id === window.myScoreId) {
             row.classList.add("highlight");
             row.id = "my-score-row";
             myRowElement = row;
@@ -77,7 +64,7 @@ function createScoreboard() {
         row.innerHTML = `
             <div>${getRankLabel(index)}</div>
             <div>${entry.nickname}</div>
-            <div>${entry.score} m</div>
+            <div>${(entry.score / 10).toFixed(1)} m</div>
         `;
         
         scoreboardBody.appendChild(row);
@@ -113,10 +100,12 @@ function executeScrollAnimation() {
     }, 50);
 }
 
-function displayFinalScore() {
+async function displayFinalScore() {
     const scoreBoard = document.getElementById("score-board");
     scoreBoard.style.display = "flex";
     
+    scores = await loadScore();
+    console.log("점수 불러오기 완료:", scores);
     recreateScoreboardContainer();
     createScoreboard();
     
@@ -138,12 +127,7 @@ const observer = new MutationObserver((mutations) => {
                 console.log("스코어보드가 나타남");
                 
                 setTimeout(() => {
-                    recreateScoreboardContainer();
-                    createScoreboard();
-                    
-                    setTimeout(() => {
-                        executeScrollAnimation();
-                    }, 100);
+                    displayFinalScore();
                 }, 50);
                 
             } else if (currentDisplay === 'none') {

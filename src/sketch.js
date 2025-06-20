@@ -1,4 +1,5 @@
 import p5 from "p5";
+import { saveScore } from './supabase.js';
 
 export const sketch = new p5((p) => {
   let gameStart = false;
@@ -13,6 +14,10 @@ export const sketch = new p5((p) => {
   let titleY = 0;
   let titleScale;
 
+  let nickname = "";
+  let scoreSaving = false;
+  // Supabase 점수 저장 여부입니다.
+
   // 입력 창 노드 취득
   const form = document.getElementById("form");
   // 입력 시 작동
@@ -21,6 +26,10 @@ export const sketch = new p5((p) => {
     e.preventDefault();
     form.style.display = "none";
     isDataEntered = true;
+    nickname = document.getElementById("input").value.trim();
+    if (nickname === "") {
+      nickname = "익명의 관람객";
+    }
   });
 
   // 게임 중 점수 확인 영역 노드 취득
@@ -141,15 +150,20 @@ export const sketch = new p5((p) => {
     }
     if (gameOver) {
       // 게임 오버되었을 경우입니다.
+      if (!scoreSaving) saveScore(nickname, score).then(() => {
+        // 스코어보드 보이게끔
+        const score_board = document.getElementById("score-board");
+        score_board.style.display = "block";
+        // 점수 확인 영역 안 보이게
+        scoreSection.style.display = "none";
+        scoreSaving = true;
+      });
+      window.me = nickname;
       gameStart = false;
       // p.text("GAME OVER", p.width / 2, p.height / 2);
       p.noLoop();
 
-      // 점수 확인 영역 안 보이게
-      scoreSection.style.display = "none";
-
-      // 스코어보드 보이게끔
-      score_board.style.display = "block";
+      
     }
   };
 
@@ -559,6 +573,7 @@ export const sketch = new p5((p) => {
     isDataEntered = false;
     gameOver = false;
     score = 0;
+    scoreSaving = false;
 
     form.reset();
     form.style.display = "none";
